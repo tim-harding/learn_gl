@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[repr(u32)]
 pub enum BufferUsage {
     StreamDraw = gl::STREAM_DRAW,

@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[repr(u32)]
 pub enum BufferKind {
     Array = gl::ARRAY_BUFFER,

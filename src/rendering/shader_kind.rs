@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 #[repr(u32)]
 pub enum ShaderKind {
     Vertex = gl::VERTEX_SHADER,

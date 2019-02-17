@@ -1,33 +1,36 @@
-use super::ShaderKind;
+use super::{InfoLog, ShaderKind};
 use gl::types::*;
-use std::ffi::CStr;
-use std::ptr::null;
+use std::ffi::{CStr, CString};
+use std::mem;
+use std::ptr;
 
 pub struct Shader {
     pub(super) id: u32,
 }
 
 impl Shader {
-    pub fn frag(source: &CStr) -> Result<Self, ()> {
+    pub fn frag(source: &CStr) -> Result<Self, String> {
         Self::new(source, ShaderKind::Fragment)
     }
 
-    pub fn vert(source: &CStr) -> Result<Self, ()> {
+    pub fn vert(source: &CStr) -> Result<Self, String> {
         Self::new(source, ShaderKind::Vertex)
     }
 
-    pub fn new(source: &CStr, kind: ShaderKind) -> Result<Self, ()> {
+    pub fn new(source: &CStr, kind: ShaderKind) -> Result<Self, String> {
         let id = unsafe { gl::CreateShader(kind as GLenum) };
         let source_ptr = source.as_ptr() as *const _;
-        let mut success: GLint = 0;
-        unsafe {
-            gl::ShaderSource(id, 1, &source_ptr, null());
+        let success = unsafe {
+            gl::ShaderSource(id, 1, &source_ptr, ptr::null());
             gl::CompileShader(id);
+            let mut success: GLint = mem::uninitialized();
             gl::GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
-        }
+            success
+        };
+        let shader = Shader { id };
         match success {
-            1 => Ok(Shader { id }),
-            _ => Err(()),
+            1 => Ok(shader),
+            _ => Err(InfoLog::shader(&shader).as_string()),
         }
     }
 }
