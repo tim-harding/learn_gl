@@ -2,15 +2,15 @@ use super::{BufferKind, BufferUsage};
 use gl::types::*;
 use std::mem::{size_of, uninitialized};
 
-pub struct VertexBuffer {
+pub struct Buffer {
     pub id: u32,
     kind: GLenum,
 }
 
-impl VertexBuffer {
-    pub fn new<'a, T>(vertices: &'a [T]) -> VertexBufferBuilder<'a, T> {
-        VertexBufferBuilder {
-            vertices,
+impl Buffer {
+    pub fn new<'a, T>(elements: &'a [T]) -> BufferBuilder<'a, T> {
+        BufferBuilder {
+            elements,
             usage: BufferUsage::StaticDraw,
             kind: BufferKind::Array,
         }
@@ -23,13 +23,13 @@ impl VertexBuffer {
     }
 }
 
-pub struct VertexBufferBuilder<'a, T: 'a> {
-    vertices: &'a [T],
+pub struct BufferBuilder<'a, T: 'a> {
+    elements: &'a [T],
     usage: BufferUsage,
     kind: BufferKind,
 }
 
-impl<'a, T> VertexBufferBuilder<'a, T> {
+impl<'a, T> BufferBuilder<'a, T> {
     pub fn usage(mut self, usage: BufferUsage) -> Self {
         self.usage = usage;
         self
@@ -40,11 +40,11 @@ impl<'a, T> VertexBufferBuilder<'a, T> {
         self
     }
 
-    pub fn build(self) -> VertexBuffer {
+    pub fn build(self) -> Buffer {
         let gl_kind = self.kind as GLenum;
         let gl_usage = self.usage as GLenum;
-        let vertex_bytes = (self.vertices.len() * size_of::<T>()) as isize;
-        let vertex_ptr = self.vertices.as_ptr() as *const GLvoid;
+        let vertex_bytes = (self.elements.len() * size_of::<T>()) as isize;
+        let vertex_ptr = self.elements.as_ptr() as *const GLvoid;
         let id = unsafe {
             let mut id: GLuint = uninitialized();
             gl::GenBuffers(1, &mut id);
@@ -52,6 +52,6 @@ impl<'a, T> VertexBufferBuilder<'a, T> {
             gl::BufferData(gl_kind, vertex_bytes, vertex_ptr, gl_usage);
             id
         };
-        VertexBuffer { id, kind: gl_kind }
+        Buffer { id, kind: gl_kind }
     }
 }

@@ -1,4 +1,4 @@
-use super::{DataType, ShaderProgram, VertexBuffer};
+use super::{DataType, Buffer};
 use gl::types::*;
 use std::mem::uninitialized;
 use std::ptr::null;
@@ -8,13 +8,13 @@ pub struct VertexArray {
 }
 
 impl VertexArray {
-    pub fn new(vertex_buffer: VertexBuffer) -> VertexArrayBuilder {
+    pub fn new<'a>() -> VertexArrayBuilder<'a> {
         VertexArrayBuilder {
-            vertex_buffer,
+            buffers: vec![],
             location: 0,
             components: 0,
             data_type: DataType::Float,
-            normalize: true,
+            normalize: false,
             stride: 0,
         }
     }
@@ -32,8 +32,8 @@ impl VertexArray {
     }
 }
 
-pub struct VertexArrayBuilder {
-    vertex_buffer: VertexBuffer,
+pub struct VertexArrayBuilder<'a> {
+    buffers: Vec<&'a Buffer>,
     location: GLuint,
     components: GLint,
     data_type: DataType,
@@ -41,7 +41,12 @@ pub struct VertexArrayBuilder {
     stride: GLsizei,
 }
 
-impl VertexArrayBuilder {
+impl<'a> VertexArrayBuilder<'a> {
+    pub fn buffer(mut self, buffer: &'a Buffer) -> Self {
+        self.buffers.push(buffer);
+        self
+    }
+
     pub fn location(mut self, location: GLuint) -> Self {
         self.location = location;
         self
@@ -70,7 +75,9 @@ impl VertexArrayBuilder {
             gl::BindVertexArray(id);
             id
         };
-        self.vertex_buffer.bind();
+        for buffer in self.buffers {
+            buffer.bind();
+        }
         unsafe {
             gl::VertexAttribPointer(
                 self.location,

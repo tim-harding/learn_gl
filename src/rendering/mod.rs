@@ -5,7 +5,7 @@ mod shader;
 mod shader_kind;
 mod shader_program;
 mod vertex_array;
-mod vertex_buffer;
+mod buffer;
 
 pub use buffer_kind::BufferKind;
 pub use buffer_usage::BufferUsage;
@@ -14,4 +14,4 @@ pub use shader::Shader;
 pub use shader_kind::ShaderKind;
 pub use shader_program::ShaderProgram;
 pub use vertex_array::VertexArray;
-pub use vertex_buffer::VertexBuffer;
+pub use buffer::Buffer;

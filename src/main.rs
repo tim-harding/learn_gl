@@ -21,10 +21,15 @@ fn main() -> Result<(), ()> {
         gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
     }
 
-    let vertices: [f32; 6] = [
-        -0.5, -0.5,
-        0.0, 0.5,
+    let vertices: [f32; 8] = [
+        0.5, 0.5,
         0.5, -0.5,
+        -0.5, -0.5,
+        -0.5, 0.5
+    ];
+    let indices: [u32; 6] = [
+        0, 1, 3,
+        1, 2, 3
     ];
     let vert_source = include_str!("shaders/basic_vertex.glsl");
     let frag_source = include_str!("shaders/basic_fragment.glsl");
@@ -33,11 +38,10 @@ fn main() -> Result<(), ()> {
     let vert = Shader::vert(vert_source_c.as_ref())?;
     let frag = Shader::frag(frag_source_c.as_ref())?;
     let shader = ShaderProgram::new().with(&vert).with(&frag).build()?;
-    shader.bind();
 
-    let vbo = VertexBuffer::new(&vertices).build();
-    let vao = VertexArray::new(vbo).components(2).build();
-    vao.bind();
+    let vbo = Buffer::new(&vertices).build();
+    let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
+    let vao = VertexArray::new().buffer(&vbo).buffer(&ebo).components(2).build();
 
     let mut running = true;
     while running {
@@ -53,10 +57,12 @@ fn main() -> Result<(), ()> {
             _ => {}
         });
 
+        shader.bind();
+        vao.bind();
         unsafe {
             gl::ClearColor(1.0, 0.5, 0.7, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, ptr::null());
         }
 
         window.swap_buffers().expect("Could not swap backbuffer.");
