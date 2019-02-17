@@ -8,8 +8,8 @@ mod rendering;
 mod window;
 
 use rendering::*;
+use std::time::SystemTime;
 use window::Window;
-use std::ptr;
 
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
@@ -28,13 +28,18 @@ fn main() {
     ];
     let vert_source = include_str!("shaders/basic_vertex.glsl");
     let frag_source = include_str!("shaders/basic_fragment.glsl");
-    let vert = Shader::vert(vert_source).unwrap();
-    let frag = Shader::frag(frag_source).unwrap();
+    let vert = Shader::vert(vert_source)
+        .map_err(|err| println!("{}", err))
+        .expect("Could not compile vertex shader.");
+    let frag = Shader::frag(frag_source)
+        .map_err(|err| println!("{}", err))
+        .expect("Could not compile fragment shader.");
     let shader = ShaderProgram::new()
         .with(&vert)
         .with(&frag)
         .build()
-        .unwrap();
+        .map_err(|err| println!("{}", err))
+        .expect("Could not link shader program.");
 
     let vbo = Buffer::new(&vertices).build();
     let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
@@ -53,14 +58,13 @@ fn main() {
         .pointer(&positions)
         .pointer(&colors)
         .build();
+    let pairing = Pairing::new(&shader, &vao, indices.len() as i32);
 
+    let time = SystemTime::now();
     window.poll(|| {
-        shader.bind();
-        vao.bind();
-        unsafe {
-            gl::ClearColor(1.0, 0.5, 0.7, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, ptr::null());
-        }
+        let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
+        globals::set_uniform(elapsed, &shader, "time");
+        globals::clear(1.0, 0.5, 0.7, 1.0);
+        pairing.draw();
     });
 }

@@ -1,7 +1,4 @@
-use glutin::{
-    EventsLoop, GlContext, ContextBuilder, Event, WindowEvent,
-    dpi::LogicalSize,
-};
+use glutin::{dpi::LogicalSize, ContextBuilder, Event, EventsLoop, GlContext, WindowEvent};
 
 pub struct Window {
     events_loop: glutin::EventsLoop,
@@ -10,12 +7,13 @@ pub struct Window {
 
 impl Window {
     pub fn new<'a>() -> WindowBuilder<'a> {
-        WindowBuilder {
-            title: "",
-        }
+        WindowBuilder { title: "" }
     }
 
-    pub fn poll<T>(&mut self, mut callback: T) where T: FnMut() -> () {
+    pub fn poll<T>(&mut self, mut callback: T)
+    where
+        T: FnMut() -> (),
+    {
         let mut running = true;
         let mut size: (bool, LogicalSize) = (false, LogicalSize::new(0.0, 0.0));
         while running {
@@ -33,7 +31,7 @@ impl Window {
             }
             callback();
             self.swap();
-        };
+        }
     }
 
     pub fn resize(&self, size: glutin::dpi::LogicalSize) {
@@ -42,7 +40,9 @@ impl Window {
     }
 
     pub fn swap(&mut self) {
-        self.window.swap_buffers().expect("Could not swap backbuffer.");
+        self.window
+            .swap_buffers()
+            .expect("Could not swap backbuffer.");
     }
 }
 
@@ -69,6 +69,9 @@ impl<'a> WindowBuilder<'a> {
                 .expect("Could not make window current.");
             gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
         }
-        Window { events_loop, window }
+        Window {
+            events_loop,
+            window,
+        }
     }
 }
