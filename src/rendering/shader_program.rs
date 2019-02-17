@@ -1,4 +1,4 @@
-use super::{Shader, InfoLog};
+use super::{InfoLog, Shader};
 use std::mem::uninitialized;
 
 pub struct ShaderProgram {
@@ -40,7 +40,7 @@ impl<'a> ShaderProgramBuilder<'a> {
             gl::GetProgramiv(id, gl::LINK_STATUS, &mut success);
             success
         };
-        let program = ShaderProgram{ id };
+        let program = ShaderProgram { id };
         match success {
             1 => Ok(program),
             _ => Err(InfoLog::shader_program(&program).as_string()),

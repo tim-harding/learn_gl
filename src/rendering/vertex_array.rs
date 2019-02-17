@@ -1,6 +1,6 @@
 use super::{Buffer, DataType, ShaderProgram};
 use gl::types::*;
-use std::ffi;
+use std::ffi::{self, CString};
 use std::mem;
 
 pub struct VertexArray {
@@ -88,8 +88,10 @@ impl ArrayPointer {
         self
     }
 
-    pub fn shader_attribute(mut self, shader: &ShaderProgram, attribute: &ffi::CStr) -> Self {
-        let attribute = unsafe { gl::GetAttribLocation(shader.id, attribute.as_ptr() as *const _) };
+    pub fn shader_attribute(mut self, shader: &ShaderProgram, attribute: &str) -> Self {
+        let attribute_c = CString::new(attribute).unwrap();
+        let attribute =
+            unsafe { gl::GetAttribLocation(shader.id, attribute_c.as_ptr() as *const _) };
         self.attribute = attribute as GLuint;
         self
     }

@@ -8,7 +8,6 @@ mod rendering;
 
 use glutin::{ContextBuilder, Event, EventsLoop, GlContext, GlWindow, WindowBuilder, WindowEvent};
 use rendering::*;
-use std::ffi::CString;
 use std::ptr;
 
 fn main() {
@@ -26,11 +25,11 @@ fn main() {
     }
 
     #[rustfmt::skip]
-    let vertices: [f32; 8] = [
-        0.5, 0.5,
-        0.5, -0.5,
-        -0.5, -0.5,
-        -0.5, 0.5
+    let vertices: [f32; 20] = [
+        0.5, 0.5, 1.0, 0.0, 0.0,
+        0.5, -0.5, 0.0, 1.0, 0.0,
+        -0.5, -0.5, 0.0, 0.0, 1.0,
+        -0.5, 0.5, 0.0, 0.0, 0.0
     ];
     #[rustfmt::skip]
     let indices: [u32; 6] = [
@@ -39,26 +38,30 @@ fn main() {
     ];
     let vert_source = include_str!("shaders/basic_vertex.glsl");
     let frag_source = include_str!("shaders/basic_fragment.glsl");
-    let vert_source_c = CString::new(vert_source).unwrap();
-    let frag_source_c = CString::new(frag_source).unwrap();
-    let vert = Shader::vert(vert_source_c.as_ref()).unwrap();
-    let frag = Shader::frag(frag_source_c.as_ref()).unwrap();
+    let vert = Shader::vert(vert_source).unwrap();
+    let frag = Shader::frag(frag_source).unwrap();
     let shader = ShaderProgram::new()
         .with(&vert)
         .with(&frag)
         .build()
         .unwrap();
 
-    let position_attrib = CString::new("position").unwrap();
     let vbo = Buffer::new(&vertices).build();
     let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
     let positions = ArrayPointer::new()
-        .shader_attribute(&shader, position_attrib.as_ref())
-        .components(2);
+        .shader_attribute(&shader, "position")
+        .components(2)
+        .stride::<f32>(5);
+    let colors = ArrayPointer::new()
+        .shader_attribute(&shader, "color")
+        .components(3)
+        .stride::<f32>(5)
+        .offset::<f32>(2);
     let vao = VertexArray::new()
         .buffer(&vbo)
         .buffer(&ebo)
         .pointer(&positions)
+        .pointer(&colors)
         .build();
 
     let mut running = true;

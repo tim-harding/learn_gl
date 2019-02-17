@@ -9,17 +9,18 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn frag(source: &CStr) -> Result<Self, String> {
+    pub fn frag(source: &str) -> Result<Self, String> {
         Self::new(source, ShaderKind::Fragment)
     }
 
-    pub fn vert(source: &CStr) -> Result<Self, String> {
+    pub fn vert(source: &str) -> Result<Self, String> {
         Self::new(source, ShaderKind::Vertex)
     }
 
-    pub fn new(source: &CStr, kind: ShaderKind) -> Result<Self, String> {
+    pub fn new(source: &str, kind: ShaderKind) -> Result<Self, String> {
+        let source_c = CString::new(source).unwrap();
         let id = unsafe { gl::CreateShader(kind as GLenum) };
-        let source_ptr = source.as_ptr() as *const _;
+        let source_ptr = source_c.as_ptr() as *const _;
         let success = unsafe {
             gl::ShaderSource(id, 1, &source_ptr, ptr::null());
             gl::CompileShader(id);
