@@ -1,0 +1,11 @@
+[package]
+name = "learn_gl"
+version = "0.1.0"
+authors = ["timmythetiny <timharding@me.com>"]
+edition = "2018"
+
+[dependencies]
+gl = "*"
+glutin = "*"
+log = "*"
+simple_logger = "*"
