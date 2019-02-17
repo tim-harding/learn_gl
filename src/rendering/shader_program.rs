@@ -2,7 +2,7 @@ use super::Shader;
 use std::mem::uninitialized;
 
 pub struct ShaderProgram {
-    pub id: u32,
+    pub(super) id: u32,
 }
 
 impl ShaderProgram {
