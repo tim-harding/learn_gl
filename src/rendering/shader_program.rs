@@ -2,11 +2,11 @@ use super::Shader;
 use std::mem::uninitialized;
 
 pub struct ShaderProgram {
-    id: u32,
+    pub id: u32,
 }
 
 impl ShaderProgram {
-    pub fn new() -> ShaderProgramBuilder {
+    pub fn new<'a>() -> ShaderProgramBuilder<'a> {
         ShaderProgramBuilder { shaders: vec![] }
     }
 
@@ -17,12 +17,12 @@ impl ShaderProgram {
     }
 }
 
-pub struct ShaderProgramBuilder {
-    shaders: Vec<Shader>,
+pub struct ShaderProgramBuilder<'a> {
+    shaders: Vec<&'a Shader>,
 }
 
-impl ShaderProgramBuilder {
-    pub fn with(mut self, shader: Shader) -> Self {
+impl<'a> ShaderProgramBuilder<'a> {
+    pub fn with(mut self, shader: &'a Shader) -> Self {
         self.shaders.push(shader);
         self
     }

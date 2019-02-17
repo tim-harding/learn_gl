@@ -4,7 +4,7 @@ use std::ffi::CStr;
 use std::ptr::null;
 
 pub struct Shader {
-    pub(super) id: u32,
+    pub id: u32,
 }
 
 impl Shader {

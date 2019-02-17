@@ -7,6 +7,8 @@ mod rendering;
 use glutin::{ContextBuilder, Event, EventsLoop, GlContext, GlWindow, WindowBuilder, WindowEvent};
 use rendering::*;
 use std::ffi::{CStr, CString};
+use std::ptr;
+use std::mem;
 
 fn main() -> Result<(), ()> {
     let mut events_loop = EventsLoop::new();
@@ -19,25 +21,23 @@ fn main() -> Result<(), ()> {
         gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
     }
 
-    let vertices = [-0.5, -0.5, 0.0, 0.5, -0.5, 0.0, 0.0, 0.5, 0.0];
+    let vertices: [f32; 6] = [
+        -0.5, -0.5,
+        0.0, 0.5,
+        0.5, -0.5,
+    ];
+    let vert_source = include_str!("shaders/basic_vertex.glsl");
+    let frag_source = include_str!("shaders/basic_fragment.glsl");
+    let vert_source_c = CString::new(vert_source).map_err(|_| ())?;
+    let frag_source_c = CString::new(frag_source).map_err(|_| ())?;
+    let vert = Shader::vert(vert_source_c.as_ref())?;
+    let frag = Shader::frag(frag_source_c.as_ref())?;
+    let shader = ShaderProgram::new().with(&vert).with(&frag).build()?;
+    shader.bind();
+
     let vbo = VertexBuffer::new(&vertices).build();
-    let vao = VertexArray::new(vbo).components(3).build();
-
-    let vertex_shader_source = CString::new(include_str!("shaders/basic_vertex.glsl"));
-    let fragment_shader_source = CString::new(include_str!("shaders/basic_fragment.glsl"));
-    let vertex_shader = Shader::vert(vertex_shader_source.as_ref().unwrap())?;
-    let fragment_shader = Shader::frag(fragment_shader_source.as_ref().unwrap())?;
-    let shader = ShaderProgram::new()
-        .with(vertex_shader)
-        .with(fragment_shader)
-        .build()?;
-
-    let version = unsafe {
-        let data = CStr::from_ptr(gl::GetString(gl::VERSION) as *const _).to_bytes().to_vec();
-        String::from_utf8(data).unwrap()
-    };
-
-    println!("OpenGL version {}", version);
+    let vao = VertexArray::new(vbo).components(2).build();
+    vao.bind();
 
     let mut running = true;
     while running {
@@ -53,11 +53,8 @@ fn main() -> Result<(), ()> {
             _ => {}
         });
 
-        vao.bind();
-        shader.bind();
-
         unsafe {
-            gl::ClearColor(0.0, 1.0, 0.0, 1.0);
+            gl::ClearColor(1.0, 0.5, 0.7, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }

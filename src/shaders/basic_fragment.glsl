@@ -1,7 +1,6 @@
-#version 330 core
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-} 
+#version 100
+precision mediump float;
+varying vec3 v_color;
+void main() {
+    gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
+}

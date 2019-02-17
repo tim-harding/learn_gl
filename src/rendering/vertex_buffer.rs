@@ -3,7 +3,7 @@ use gl::types::*;
 use std::mem::{size_of, uninitialized};
 
 pub struct VertexBuffer {
-    id: u32,
+    pub id: u32,
     kind: GLenum,
 }
 
