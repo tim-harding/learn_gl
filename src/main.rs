@@ -5,24 +5,14 @@ extern crate glutin;
 extern crate log;
 
 mod rendering;
+mod window;
 
-use glutin::{ContextBuilder, Event, EventsLoop, GlContext, GlWindow, WindowBuilder, WindowEvent};
 use rendering::*;
+use window::Window;
 use std::ptr;
 
 fn main() {
-    let mut events_loop = EventsLoop::new();
-    let window_builder = WindowBuilder::new().with_title("Hello World");
-    let context_builder = ContextBuilder::new().with_vsync(true);
-    let window = GlWindow::new(window_builder, context_builder, &events_loop)
-        .expect("Could not open a window.");
-
-    unsafe {
-        window
-            .make_current()
-            .expect("Could not make window current.");
-        gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
-    }
+    let mut window = Window::new().title("Hello, world").build();
 
     #[rustfmt::skip]
     let vertices: [f32; 20] = [
@@ -64,20 +54,7 @@ fn main() {
         .pointer(&colors)
         .build();
 
-    let mut running = true;
-    while running {
-        events_loop.poll_events(|event| match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => running = false,
-                WindowEvent::Resized(logical_size) => {
-                    let dpi_factor = window.get_hidpi_factor();
-                    window.resize(logical_size.to_physical(dpi_factor));
-                }
-                _ => {}
-            },
-            _ => {}
-        });
-
+    window.poll(|| {
         shader.bind();
         vao.bind();
         unsafe {
@@ -85,7 +62,5 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, ptr::null());
         }
-
-        window.swap_buffers().expect("Could not swap backbuffer.");
-    }
+    });
 }

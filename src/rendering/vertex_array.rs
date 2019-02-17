@@ -89,7 +89,7 @@ impl ArrayPointer {
     }
 
     pub fn shader_attribute(mut self, shader: &ShaderProgram, attribute: &str) -> Self {
-        let attribute_c = CString::new(attribute).unwrap();
+        let attribute_c = CString::new(attribute).unwrap_or(CString::default());
         let attribute =
             unsafe { gl::GetAttribLocation(shader.id, attribute_c.as_ptr() as *const _) };
         self.attribute = attribute as GLuint;

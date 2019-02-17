@@ -18,7 +18,8 @@ impl Shader {
     }
 
     pub fn new(source: &str, kind: ShaderKind) -> Result<Self, String> {
-        let source_c = CString::new(source).unwrap();
+        let source_c = CString::new(source)
+            .map_err(|_err| String::from("Could not build c-style string from source."))?;
         let id = unsafe { gl::CreateShader(kind as GLenum) };
         let source_ptr = source_c.as_ptr() as *const _;
         let success = unsafe {
