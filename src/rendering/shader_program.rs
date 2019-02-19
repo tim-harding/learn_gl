@@ -1,7 +1,7 @@
 use super::{InfoLog, Shader};
-use std::mem::uninitialized;
-use std::ffi::CString;
 use gl::types::*;
+use std::ffi::CString;
+use std::mem::uninitialized;
 
 pub struct ShaderProgram {
     pub(super) id: u32,

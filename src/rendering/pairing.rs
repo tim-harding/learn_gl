@@ -1,4 +1,4 @@
-
+use super::material::Material;
 use super::{ShaderProgram, Uniform, VertexArray};
 use gl::types::*;
 use std::collections::{
@@ -11,8 +11,8 @@ use std::ptr;
 pub struct Pairing<'a> {
     shader: &'a ShaderProgram,
     vertex_array: &'a VertexArray,
-    uniforms: HashMap<GLint, Box<Uniform>>,
     element_count: i32,
+    material: Option<&'a Material>,
 }
 
 impl<'a> Pairing<'a> {
@@ -24,28 +24,21 @@ impl<'a> Pairing<'a> {
         Self {
             shader,
             vertex_array,
-            uniforms: HashMap::new(),
             element_count,
+            material: None,
         }
     }
 
-    pub fn uniform(&mut self, location: GLint, value: Box<Uniform>) {
-        let entry = self.uniforms.entry(location);
-        match entry {
-            Occupied(entry) => {
-                entry.replace_entry(value);
-            }
-            Vacant(entry) => {
-                entry.insert(value);
-            }
-        };
+    pub fn material(mut self, material: &'a Material) -> Self {
+        self.material = Some(material);
+        self
     }
 
     pub fn draw(&self) {
         self.shader.bind();
         self.vertex_array.bind();
-        for (location, value) in &self.uniforms {
-            value.set(self.shader.id, *location);
+        if let Some(ref material) = self.material {
+            material.bind();
         }
         unsafe {
             gl::DrawElements(

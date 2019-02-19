@@ -60,13 +60,15 @@ fn main() {
         .pointer(&colors)
         .build();
 
-    let mut pairing = Pairing::new(&shader, &vao, indices.len() as i32);
+    let mut basic_material = BasicMaterial::new(&shader);
+    basic_material.scalar(0.5);
+    let pairing = Pairing::new(&shader, &vao, indices.len() as i32).material(&basic_material);
     let time_location = shader.location("time");
 
     let time = SystemTime::now();
     window.poll(|| {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
-        pairing.uniform(time_location, Box::new(Unary::new(elapsed)));
+        Unary::new(elapsed).set_uniform(&shader, time_location);
         globals::clear(1.0, 0.5, 0.7, 1.0);
         pairing.draw();
     });

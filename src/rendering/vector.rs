@@ -1,4 +1,4 @@
-use super::Uniform;
+use super::{ShaderProgram, Uniform};
 use gl::types::*;
 
 pub struct Vector4 {
@@ -15,9 +15,9 @@ impl Vector4 {
 }
 
 impl Uniform for Vector4 {
-    fn set(&self, program: GLuint, location: GLint) {
+    fn set_uniform(&self, program: &ShaderProgram, location: GLint) {
         unsafe {
-            gl::ProgramUniform4f(program, location, self.x, self.y, self.z, self.w);
+            gl::ProgramUniform4f(program.id, location, self.x, self.y, self.z, self.w);
         }
     }
 }
@@ -32,12 +32,20 @@ impl Vector3 {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
+
+    pub fn one() -> Self {
+        Self::new(1.0, 1.0, 1.0)
+    }
+
+    pub fn zero() -> Self {
+        Self::new(0.0, 0.0, 0.0)
+    }
 }
 
 impl Uniform for Vector3 {
-    fn set(&self, program: GLuint, location: GLint) {
+    fn set_uniform(&self, program: &ShaderProgram, location: GLint) {
         unsafe {
-            gl::ProgramUniform3f(program, location, self.x, self.y, self.z);
+            gl::ProgramUniform3f(program.id, location, self.x, self.y, self.z);
         }
     }
 }
@@ -54,9 +62,9 @@ impl Vector2 {
 }
 
 impl Uniform for Vector2 {
-    fn set(&self, program: GLuint, location: GLint) {
+    fn set_uniform(&self, program: &ShaderProgram, location: GLint) {
         unsafe {
-            gl::ProgramUniform2f(program, location, self.x, self.y);
+            gl::ProgramUniform2f(program.id, location, self.x, self.y);
         }
     }
 }
@@ -72,9 +80,9 @@ impl Unary {
 }
 
 impl Uniform for Unary {
-    fn set(&self, program: GLuint, location: GLint) {
+    fn set_uniform(&self, program: &ShaderProgram, location: GLint) {
         unsafe {
-            gl::ProgramUniform1f(program, location, self.value);
+            gl::ProgramUniform1f(program.id, location, self.value);
         }
     }
 }
