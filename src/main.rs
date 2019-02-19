@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![feature(map_entry_replace)]
 
 extern crate gl;
 extern crate glutin;
@@ -58,12 +59,14 @@ fn main() {
         .pointer(&positions)
         .pointer(&colors)
         .build();
-    let pairing = Pairing::new(&shader, &vao, indices.len() as i32);
+
+    let mut pairing = Pairing::new(&shader, &vao, indices.len() as i32);
+    let time_location = shader.location("time");
 
     let time = SystemTime::now();
     window.poll(|| {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
-        globals::set_uniform(elapsed, &shader, "time");
+        pairing.uniform(time_location, Box::new(Unary::new(elapsed)));
         globals::clear(1.0, 0.5, 0.7, 1.0);
         pairing.draw();
     });

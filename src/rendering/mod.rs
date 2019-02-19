@@ -8,6 +8,8 @@ mod pairing;
 mod shader;
 mod shader_kind;
 mod shader_program;
+mod uniform;
+mod vector;
 mod vertex_array;
 
 pub use buffer::Buffer;
@@ -19,4 +21,6 @@ pub use pairing::Pairing;
 pub use shader::Shader;
 pub use shader_kind::ShaderKind;
 pub use shader_program::ShaderProgram;
+pub use uniform::Uniform;
+pub use vector::*;
 pub use vertex_array::{ArrayPointer, VertexArray};

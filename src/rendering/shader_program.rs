@@ -1,5 +1,7 @@
 use super::{InfoLog, Shader};
 use std::mem::uninitialized;
+use std::ffi::CString;
+use gl::types::*;
 
 pub struct ShaderProgram {
     pub(super) id: u32,
@@ -14,6 +16,12 @@ impl ShaderProgram {
         unsafe {
             gl::UseProgram(self.id);
         }
+    }
+
+    pub fn location(&self, attribute: &str) -> GLint {
+        let attribute_c = CString::new(attribute).unwrap_or(CString::default());
+        let attribute_ptr = attribute_c.as_ptr() as *const _;
+        unsafe { gl::GetUniformLocation(self.id, attribute_ptr) }
     }
 }
 
