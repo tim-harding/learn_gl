@@ -24,3 +24,9 @@ pub use texture_kind::TextureKind;
 
 mod texture_parameter;
 pub use texture_parameter::TextureParameter;
+
+mod wrap_mode;
+pub use wrap_mode::WrapMode;
+
+mod filter_mode;
+pub use filter_mode::FilterMode;

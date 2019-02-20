@@ -9,6 +9,7 @@ extern crate log;
 mod rendering;
 mod window;
 
+use image::GenericImageView;
 use image::ImageFormat::*;
 use rendering::*;
 use rendering::enumerations::BufferKind;
@@ -20,7 +21,7 @@ fn main() {
 
     #[rustfmt::skip]
     let vertices: [f32; 16] = [
-        0.5, 0.5, 1.0, 0.0,
+        0.5, 0.5, 1.0, 1.0,
         0.5, -0.5, 1.0, 0.0,
         -0.5, -0.5, 0.0, 0.0,
         -0.5, 0.5, 0.0, 1.0,
@@ -64,10 +65,13 @@ fn main() {
         .build();
 
     let texture_bmp = include_bytes!("textures/brick.bmp");
-    let texture = image::load_from_memory_with_format(texture_bmp, BMP)
-        .unwrap()
+    let bmp = image::load_from_memory_with_format(texture_bmp, BMP).unwrap();
+    let width = bmp.width() as usize;
+    let height = bmp.height() as usize;
+    let texture_data = bmp
         .to_rgb()
         .into_raw();
+    let texture = Texture::new(texture_data.as_ref(), width, height).build();
 
     let pairing = Mesh::new(&vao, indices.len() as i32);
     let time_location = shader.location("time");
@@ -77,6 +81,7 @@ fn main() {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
         Unary::new(elapsed).set_uniform(&shader, time_location);
         globals::clear(1.0, 0.5, 0.7, 1.0);
+        texture.bind();
         shader.bind();
         pairing.draw();
     });
