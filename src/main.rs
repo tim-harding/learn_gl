@@ -4,6 +4,7 @@
 extern crate gl;
 extern crate glutin;
 extern crate log;
+extern crate image;
 
 mod rendering;
 mod window;
@@ -11,6 +12,7 @@ mod window;
 use rendering::*;
 use std::time::SystemTime;
 use window::Window;
+use image::ImageFormat::*;
 
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
@@ -60,9 +62,11 @@ fn main() {
         .pointer(&colors)
         .build();
 
-    let mut basic_material = BasicMaterial::new(&shader);
-    basic_material.scalar(0.5);
-    let pairing = Pairing::new(&shader, &vao, indices.len() as i32).material(&basic_material);
+    let texture_bmp = include_bytes!("textures/brick.bmp");
+    let texture = image::load_from_memory_with_format(texture_bmp, BMP);
+
+    let basic_material = BasicMaterial::new(&shader).scalar(0.5);
+    let pairing = Pairing::new(&vao, indices.len() as i32);
     let time_location = shader.location("time");
 
     let time = SystemTime::now();
@@ -70,6 +74,7 @@ fn main() {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
         Unary::new(elapsed).set_uniform(&shader, time_location);
         globals::clear(1.0, 0.5, 0.7, 1.0);
+        basic_material.bind();
         pairing.draw();
     });
 }

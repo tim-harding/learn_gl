@@ -5,7 +5,7 @@ pub struct BasicMaterial<'a> {
     scalar: UniformCacher<Unary>,
 }
 
-impl<'a> BasicMaterial<'a> {
+impl<'b, 'a: 'b> BasicMaterial<'a> {
     pub fn new(shader: &'a ShaderProgram) -> Self {
         Self {
             shader,
@@ -13,8 +13,9 @@ impl<'a> BasicMaterial<'a> {
         }
     }
 
-    pub fn scalar(&mut self, scalar: f32) {
+    pub fn scalar(mut self, scalar: f32) -> Self {
         self.scalar.uniform = Unary::new(scalar);
+        self
     }
 }
 

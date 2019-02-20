@@ -20,7 +20,7 @@ pub use buffer_kind::BufferKind;
 pub use buffer_usage::BufferUsage;
 pub use data_type::DataType;
 pub(self) use info_log::InfoLog;
-pub use material::Material;
+pub use material::*;
 pub use pairing::Pairing;
 pub use shader::Shader;
 pub use shader_kind::ShaderKind;

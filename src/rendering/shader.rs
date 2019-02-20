@@ -1,6 +1,6 @@
 use super::{InfoLog, ShaderKind};
 use gl::types::*;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::mem;
 use std::ptr;
 
