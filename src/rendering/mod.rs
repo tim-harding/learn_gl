@@ -1,30 +1,30 @@
-mod basic_material;
 mod buffer;
-mod buffer_kind;
-mod buffer_usage;
-mod data_type;
-pub mod globals;
-mod info_log;
-mod material;
-mod pairing;
-mod shader;
-mod shader_kind;
-mod shader_program;
-mod uniform;
-mod vector;
-mod vertex_array;
-
-pub use basic_material::BasicMaterial;
 pub use buffer::Buffer;
-pub use buffer_kind::BufferKind;
-pub use buffer_usage::BufferUsage;
-pub use data_type::DataType;
-pub(self) use info_log::InfoLog;
-pub use material::*;
-pub use pairing::Pairing;
+
+pub mod globals;
+
+mod info_log;
+pub use info_log::InfoLog;
+
+mod mesh;
+pub use mesh::Mesh;
+
+mod shader;
 pub use shader::Shader;
-pub use shader_kind::ShaderKind;
+
+mod shader_program;
 pub use shader_program::ShaderProgram;
+
+mod texture;
+pub use texture::Texture;
+
+mod uniform;
 pub use uniform::{Uniform, UniformCacher};
+
+mod vector;
 pub use vector::*;
-pub use vertex_array::{ArrayPointer, VertexArray};
+
+mod vertex_array;
+pub use vertex_array::{VertexArray, ArrayPointer};
+
+pub mod enumerations;

@@ -1,4 +1,4 @@
-use super::{BufferKind, BufferUsage};
+use super::enumerations::{BufferKind, BufferUsage};
 use gl::types::*;
 use std::mem::{size_of, uninitialized};
 

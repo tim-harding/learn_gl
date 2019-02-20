@@ -1,14 +1,14 @@
-use super::{Material, VertexArray};
+use super::VertexArray;
 use std::ptr;
 
-pub struct Pairing<'a> {
+pub struct Mesh<'a> {
     vertex_array: &'a VertexArray,
     element_count: i32,
 }
 
-impl<'a> Pairing<'a> {
+impl<'a> Mesh<'a> {
     pub fn new(vertex_array: &'a VertexArray, element_count: i32) -> Self {
-        Self {
+        Mesh {
             vertex_array,
             element_count,
         }

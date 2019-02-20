@@ -1,4 +1,4 @@
-use super::{InfoLog, ShaderKind};
+use super::{InfoLog, enumerations::ShaderKind};
 use gl::types::*;
 use std::ffi::CString;
 use std::mem;
