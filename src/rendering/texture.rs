@@ -1,4 +1,7 @@
-use super::enumerations::{BaseInternalFormat, PixelFormat, PixelData, TextureKind, WrapMode, TextureParameter, FilterMode};
+use super::enumerations::{
+    BaseInternalFormat, FilterMode, PixelData, PixelFormat, TextureKind, TextureParameter,
+    TextureUnit, WrapMode,
+};
 use gl::types::*;
 
 pub struct Texture {
@@ -8,7 +11,8 @@ pub struct Texture {
 impl Texture {
     pub fn new<'a>(data: &'a [u8], width: usize, height: usize) -> TextureBuilder<'a> {
         TextureBuilder {
-            data, width,
+            data,
+            width,
             height,
             mipmap: false,
             wrap: Wrap::default(),
@@ -21,6 +25,13 @@ impl Texture {
             gl::BindTexture(gl::TEXTURE_2D, self.id);
         }
     }
+
+    pub fn activate(&self, unit: TextureUnit) {
+        unsafe {
+            gl::ActiveTexture(unit as u32);
+        }
+        self.bind();
+    }
 }
 
 struct Wrap {
@@ -31,7 +42,11 @@ struct Wrap {
 
 impl Wrap {
     pub fn default() -> Self {
-        Self{ s: WrapMode::Repeat, t: WrapMode::Repeat, r: WrapMode::Repeat }
+        Self {
+            s: WrapMode::Repeat,
+            t: WrapMode::Repeat,
+            r: WrapMode::Repeat,
+        }
     }
 }
 
@@ -42,7 +57,10 @@ struct Filter {
 
 impl Filter {
     pub fn default() -> Self {
-        Filter{ min: FilterMode::Linear, mag: FilterMode::Linear, }
+        Filter {
+            min: FilterMode::Linear,
+            mag: FilterMode::Linear,
+        }
     }
 }
 
@@ -84,11 +102,31 @@ impl<'a> TextureBuilder<'a> {
             }
         }
         unsafe {
-            gl::TexParameteri(gl::TEXTURE_2D, TextureParameter::WrapS as u32, self.wrap.s as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, TextureParameter::WrapR as u32, self.wrap.r as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, TextureParameter::WrapT as u32, self.wrap.t as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, TextureParameter::MagFilter as u32, self.filter.mag as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, TextureParameter::MinFilter as u32, self.filter.min as i32);
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                TextureParameter::WrapS as u32,
+                self.wrap.s as i32,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                TextureParameter::WrapR as u32,
+                self.wrap.r as i32,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                TextureParameter::WrapT as u32,
+                self.wrap.t as i32,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                TextureParameter::MagFilter as u32,
+                self.filter.mag as i32,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                TextureParameter::MinFilter as u32,
+                self.filter.min as i32,
+            );
         }
         texture
     }

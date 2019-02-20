@@ -25,6 +25,6 @@ mod vector;
 pub use vector::*;
 
 mod vertex_array;
-pub use vertex_array::{VertexArray, ArrayPointer};
+pub use vertex_array::{ArrayPointer, VertexArray};
 
 pub mod enumerations;

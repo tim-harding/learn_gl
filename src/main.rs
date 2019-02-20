@@ -10,9 +10,8 @@ mod rendering;
 mod window;
 
 use image::GenericImageView;
-use image::ImageFormat::*;
-use rendering::*;
-use rendering::enumerations::BufferKind;
+use image::ImageFormat;
+use rendering::{*, enumerations::*};
 use std::time::SystemTime;
 use window::Window;
 
@@ -64,14 +63,15 @@ fn main() {
         .pointer(&colors)
         .build();
 
-    let texture_bmp = include_bytes!("textures/brick.bmp");
-    let bmp = image::load_from_memory_with_format(texture_bmp, BMP).unwrap();
-    let width = bmp.width() as usize;
-    let height = bmp.height() as usize;
-    let texture_data = bmp
-        .to_rgb()
-        .into_raw();
-    let texture = Texture::new(texture_data.as_ref(), width, height).build();
+    let crate_bmp = include_bytes!("textures/crate.bmp");
+    let face_bmp = include_bytes!("textures/face.bmp");
+    let crate_tex = texture_from_bmp(crate_bmp);
+    let face_tex = texture_from_bmp(face_bmp);
+
+    let tex1_location = shader.location("tex1");
+    let tex2_location = shader.location("tex2");
+    UnaryInt::new(0).set_uniform(&shader, tex1_location);
+    UnaryInt::new(1).set_uniform(&shader, tex2_location);
 
     let pairing = Mesh::new(&vao, indices.len() as i32);
     let time_location = shader.location("time");
@@ -81,8 +81,19 @@ fn main() {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
         Unary::new(elapsed).set_uniform(&shader, time_location);
         globals::clear(1.0, 0.5, 0.7, 1.0);
-        texture.bind();
+        crate_tex.activate(TextureUnit::_0);
+        face_tex.activate(TextureUnit::_1);
         shader.bind();
         pairing.draw();
     });
+}
+
+fn texture_from_bmp(data: &[u8]) -> Texture {
+    let bmp = image::load_from_memory_with_format(data, ImageFormat::BMP).unwrap();
+    let width = bmp.width() as usize;
+    let height = bmp.height() as usize;
+    let texture_data = bmp
+        .to_rgb()
+        .into_raw();
+    Texture::new(texture_data.as_ref(), width, height).build()
 }

@@ -1,4 +1,4 @@
-use super::{Buffer, enumerations::DataType, ShaderProgram};
+use super::{enumerations::DataType, Buffer, ShaderProgram};
 use gl::types::*;
 use std::ffi::{self, CString};
 use std::mem;

@@ -30,3 +30,6 @@ pub use wrap_mode::WrapMode;
 
 mod filter_mode;
 pub use filter_mode::FilterMode;
+
+mod texture_unit;
+pub use texture_unit::TextureUnit;

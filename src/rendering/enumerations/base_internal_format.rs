@@ -1,4 +1,4 @@
-// Incomplete. https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml 
+// Incomplete. https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glTexImage2D.xhtml
 
 #[allow(dead_code)]
 #[repr(u32)]

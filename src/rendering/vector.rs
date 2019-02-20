@@ -86,3 +86,21 @@ impl Uniform for Unary {
         }
     }
 }
+
+pub struct UnaryInt {
+    pub value: i32,
+}
+
+impl UnaryInt {
+    pub fn new(value: i32) -> Self {
+        Self{ value }
+    }
+}
+
+impl Uniform for UnaryInt {
+    fn set_uniform(&self, program: &ShaderProgram, location: GLint) {
+        unsafe {
+            gl::ProgramUniform1i(program.id, location, self.value);
+        }
+    }
+}
