@@ -1,30 +1,87 @@
 use super::ShaderProgram;
 use gl::types::*;
+use nalgebra_glm;
 
-pub trait Uniform {
-    fn set_uniform(&self, program: &ShaderProgram, location: GLint);
-}
-
-pub struct UniformCacher<T>
-where
-    T: Uniform,
+pub struct Uniform<'a>
 {
-    pub(super) uniform: T,
+    shader: &'a ShaderProgram,
     location: GLint,
 }
 
-impl<T> UniformCacher<T>
-where
-    T: Uniform,
+impl<'a> Uniform<'a>
 {
-    pub fn new(uniform: T, attribute: &str, shader: &ShaderProgram) -> Self {
+    pub fn new(attribute: &str, shader: &'a ShaderProgram) -> Self {
         Self {
-            uniform,
+            shader,
             location: shader.location(attribute),
         }
     }
+}
 
-    pub fn set(&self, shader: &ShaderProgram) {
-        self.uniform.set_uniform(shader, self.location);
+pub trait UniformValue {
+    fn set(&self, uniform: &Uniform);
+}
+
+impl UniformValue for nalgebra_glm::Vec1 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform1f(uniform.shader.id, uniform.location, self.x);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::Vec2 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform2f(uniform.shader.id, uniform.location, self.x, self.y);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::Vec3 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform3f(uniform.shader.id, uniform.location, self.x, self.y, self.z);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::Vec4 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform4f(uniform.shader.id, uniform.location, self.x, self.y, self.z, self.w);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::IVec1 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform1i(uniform.shader.id, uniform.location, self.x);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::IVec2 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform2i(uniform.shader.id, uniform.location, self.x, self.y);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::IVec3 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform3i(uniform.shader.id, uniform.location, self.x, self.y, self.z);
+        }
+    }
+}
+
+impl UniformValue for nalgebra_glm::IVec4 {
+    fn set(&self, uniform: &Uniform) {
+        unsafe {
+            gl::ProgramUniform4i(uniform.shader.id, uniform.location, self.x, self.y, self.z, self.w);
+        }
     }
 }

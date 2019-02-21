@@ -4,16 +4,17 @@
 extern crate gl;
 extern crate glutin;
 extern crate image;
-extern crate log;
+extern crate nalgebra_glm;
 
 mod rendering;
 mod window;
 
 use image::GenericImageView;
 use image::ImageFormat;
-use rendering::{*, enumerations::*};
+use rendering::{enumerations::*, *};
 use std::time::SystemTime;
 use window::Window;
+use nalgebra_glm::{IVec1, Vec1};
 
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
@@ -68,18 +69,18 @@ fn main() {
     let crate_tex = texture_from_bmp(crate_bmp);
     let face_tex = texture_from_bmp(face_bmp);
 
-    let tex1_location = shader.location("tex1");
-    let tex2_location = shader.location("tex2");
-    UnaryInt::new(0).set_uniform(&shader, tex1_location);
-    UnaryInt::new(1).set_uniform(&shader, tex2_location);
+    let tex1 = Uniform::new("tex1", &shader);
+    IVec1::new(0).set(&tex1);
+    let tex2 = Uniform::new("tex2", &shader);
+    IVec1::new(1).set(&tex2);
 
     let pairing = Mesh::new(&vao, indices.len() as i32);
-    let time_location = shader.location("time");
+    let time_uniform = Uniform::new("time", &shader);
 
     let time = SystemTime::now();
     window.poll(|| {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
-        Unary::new(elapsed).set_uniform(&shader, time_location);
+        Vec1::new(elapsed).set(&time_uniform);
         globals::clear(1.0, 0.5, 0.7, 1.0);
         crate_tex.activate(TextureUnit::_0);
         face_tex.activate(TextureUnit::_1);
@@ -92,8 +93,6 @@ fn texture_from_bmp(data: &[u8]) -> Texture {
     let bmp = image::load_from_memory_with_format(data, ImageFormat::BMP).unwrap();
     let width = bmp.width() as usize;
     let height = bmp.height() as usize;
-    let texture_data = bmp
-        .to_rgb()
-        .into_raw();
+    let texture_data = bmp.to_rgb().into_raw();
     Texture::new(texture_data.as_ref(), width, height).build()
 }
