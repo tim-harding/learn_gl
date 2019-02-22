@@ -4,7 +4,7 @@ use std::ffi::CString;
 use std::mem::uninitialized;
 
 pub struct ShaderProgram {
-    pub(super) id: u32,
+    pub id: u32,
 }
 
 impl ShaderProgram {

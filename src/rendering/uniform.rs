@@ -62,9 +62,9 @@ where
 {
     pub fn set(&self) {
         match &self.kind {
-            Float => self.assign(ASSIGNMENT_F),
-            Int => self.assign(ASSIGNMENT_I),
-            Uint => self.assign(ASSIGNMENT_U),
+            Kind::Float => self.assign(ASSIGNMENT_F),
+            Kind::Int => self.assign(ASSIGNMENT_I),
+            Kind::Uint => self.assign(ASSIGNMENT_U),
         };
     }
 
@@ -98,8 +98,9 @@ where
     fn assign<U>(&self, array: [Assignment<U>; 4]) {
         let count = self.uniforms.len() as i32;
         let uniforms_ptr = self.uniforms.as_ptr() as *const U;
+        let assignment = array[self.components];
         unsafe {
-            (array[self.components])(self.shader.id, self.location, count, uniforms_ptr);
+            assignment(self.shader.id, self.location, count, uniforms_ptr);
         }
     }
 }
