@@ -44,6 +44,11 @@ impl Window {
             .swap_buffers()
             .expect("Could not swap backbuffer.");
     }
+
+    pub fn size(&self) -> (f32, f32) {
+        let size = self.window.get_inner_size().unwrap();
+        (size.width as f32, size.height as f32)
+    }
 }
 
 pub struct WindowBuilder<'a> {

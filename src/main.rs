@@ -80,9 +80,15 @@ fn main() {
     let mut time = UniformVector::new("time", &shader, vec![glm::Vec1::new(0.0)]).unwrap();
     time.set();
 
-    let rot_2d: glm::Mat3 = glm::rotation2d(3.14 / 2.0);
-    let mut rotation = UniformMatrix::new("transform", &shader, vec![rot_2d]).unwrap();
-    rotation.set(false);
+    let tx_model = UniformMatrix::new("model", &shader, model_matrix()).unwrap();
+    let (width, height) = window.size();
+    let tx_view = UniformMatrix::new("view", &shader, vec![view_matrix()]).unwrap();
+    let tx_projection = UniformMatrix::new(
+        "projection",
+        &shader,
+        vec![projection_matrix(width, height)],
+    )
+    .unwrap();
 
     let start_time = SystemTime::now();
     window.poll(|| {
@@ -90,15 +96,19 @@ fn main() {
         time.uniforms[0] = glm::Vec1::new(elapsed);
         time.set();
 
-        rotation.uniforms[0] = glm::rotation2d(elapsed);
-        rotation.set(false);
-
         crate_tex.activate(TextureUnit::_0);
         face_tex.activate(TextureUnit::_1);
         shader.bind();
 
-        globals::clear(1.0, 0.5, 0.7, 1.0);
-        pairing.draw();
+        tx_view.set_all();
+        tx_projection.set_all();
+
+        globals::clear(1.0, 0.5, 0.7, 1.0, true);
+        globals::test_depth(true);
+        for i in 0..tx_model.uniforms.len() {
+            tx_model.set_range(i, i + 1);
+            pairing.draw();
+        }
     });
 }
 
@@ -108,4 +118,29 @@ fn texture_from_bmp(data: &[u8]) -> Texture {
     let height = bmp.height() as usize;
     let texture_data = bmp.to_rgb().into_raw();
     Texture::new(texture_data.as_ref(), width, height).build()
+}
+
+fn model_matrix() -> Vec<glm::Mat4> {
+    let mut planes = Vec::with_capacity(3);
+    for i in 0..3 {
+        let axis = glm::Vec3::new(
+            (i == 0) as u8 as f32,
+            (i == 1) as u8 as f32,
+            (i == 2) as u8 as f32,
+        );
+        let mut rot: glm::Mat4 = glm::identity();
+        rot = glm::rotate(&rot, 3.1415 / 4.0, &axis);
+        planes.push(rot);
+    }
+    planes
+}
+
+fn view_matrix() -> glm::Mat4 {
+    let view: glm::Mat4 = glm::identity();
+    let translation = glm::Vec3::new(0.0, 0.0, -3.0);
+    glm::translate(&view, &translation)
+}
+
+fn projection_matrix(width: f32, height: f32) -> glm::Mat4 {
+    glm::perspective(3.1415 / 4.0, width / height, 0.1, 100.0)
 }

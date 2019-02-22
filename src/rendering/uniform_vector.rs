@@ -1,12 +1,16 @@
 use super::ShaderProgram;
 use gl::types::*;
-use std::any::TypeId;
 use nalgebra_glm::*;
+use std::any::TypeId;
 
 type Setter<T> = unsafe fn(GLuint, GLint, GLsizei, *const T);
 
 #[derive(Debug)]
-enum Kind {Float, Int, Uint}
+enum Kind {
+    Float,
+    Int,
+    Uint,
+}
 
 const SETTERS_F: [Setter<GLfloat>; 4] = [
     gl::ProgramUniform1fv,
@@ -69,10 +73,14 @@ where
     }
 
     pub fn new(attribute: &str, shader: &'a ShaderProgram, uniforms: Vec<T>) -> Option<Self> {
-        let vector_id = TypeId::of::<T>();
         let location = shader.location(attribute);
-        Self::kind_components::<T>()
-            .map(|(kind, components)| Self{shader, location, uniforms, kind, components})
+        Self::kind_components::<T>().map(|(kind, components)| Self {
+            shader,
+            location,
+            uniforms,
+            kind,
+            components,
+        })
     }
 
     fn kind_components<U: 'static>() -> Option<(Kind, usize)> {
@@ -87,7 +95,7 @@ where
                 };
                 return Some((kind, components));
             }
-        };
+        }
         None
     }
 

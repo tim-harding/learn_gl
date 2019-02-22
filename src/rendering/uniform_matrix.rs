@@ -1,5 +1,5 @@
+use super::ShaderProgram;
 use gl::types::*;
-use super::{ShaderProgram};
 use nalgebra_glm::*;
 use std::any::TypeId;
 
@@ -28,32 +28,53 @@ const SETTERS: [Setter; 9] = [
     gl::ProgramUniformMatrix4x3fv,
 ];
 
-pub struct UniformMatrix<'a, T> where T: 'static {
+pub struct UniformMatrix<'a, T>
+where
+    T: 'static,
+{
     shader: &'a ShaderProgram,
     location: GLint,
     pub uniforms: Vec<T>,
     setter: Setter,
 }
 
-impl<'a, T> UniformMatrix<'a, T> where T: 'static {
+impl<'a, T> UniformMatrix<'a, T>
+where
+    T: 'static,
+{
     pub fn new(attribute: &str, shader: &'a ShaderProgram, uniforms: Vec<T>) -> Option<Self> {
         let id = TypeId::of::<T>();
         if let Some(position) = MATRIX_IDS.iter().position(|item| *item == id) {
             let location = shader.location(attribute);
             let setter = SETTERS[position];
-            Some(Self{ shader, location, uniforms, setter})
+            Some(Self {
+                shader,
+                location,
+                uniforms,
+                setter,
+            })
         } else {
             None
         }
     }
 
-    pub fn set(&self, transpose: bool) { 
+    pub fn set_all(&self) {
+        self.set_range(0, self.uniforms.len());
+    }
+
+    pub fn set_range(&self, start: usize, end: usize) {
+        let count = (end - start) as i32;
+        let uniforms_ptr =
+            unsafe { self.uniforms.as_ptr().offset(start as isize) as *const GLfloat };
+        let setter = self.setter;
         unsafe {
-            let transpose = transpose as u8;
-            let count = self.uniforms.len() as i32;
-            let uniforms_ptr = self.uniforms.as_ptr() as *const GLfloat;
-            let setter = self.setter;
-            setter(self.shader.id, self.location, count, transpose, uniforms_ptr);
+            setter(
+                self.shader.id,
+                self.location,
+                count,
+                false as u8,
+                uniforms_ptr,
+            );
         }
     }
 }
