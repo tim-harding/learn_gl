@@ -27,4 +27,7 @@ pub use vertex_array::{ArrayPointer, VertexArray};
 mod uniform_matrix;
 pub use uniform_matrix::UniformMatrix;
 
+mod camera;
+pub use camera::Camera;
+
 pub mod enumerations;

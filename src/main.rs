@@ -78,17 +78,14 @@ fn main() {
     tex2.set();
 
     let mut time = UniformVector::new("time", &shader, vec![glm::Vec1::new(0.0)]).unwrap();
-    time.set();
-
     let tx_model = UniformMatrix::new("model", &shader, model_matrix()).unwrap();
+
     let (width, height) = window.size();
-    let tx_view = UniformMatrix::new("view", &shader, vec![view_matrix()]).unwrap();
-    let tx_projection = UniformMatrix::new(
-        "projection",
-        &shader,
-        vec![projection_matrix(width, height)],
-    )
-    .unwrap();
+    let camera = Camera::new()
+        .rotation(0.0, -3.1415 / 5.0)
+        .position(0.0, 1.0, 3.0)
+        .viewport(width, height)
+        .build();
 
     let start_time = SystemTime::now();
     window.poll(|| {
@@ -99,9 +96,7 @@ fn main() {
         crate_tex.activate(TextureUnit::_0);
         face_tex.activate(TextureUnit::_1);
         shader.bind();
-
-        tx_view.set_all();
-        tx_projection.set_all();
+        camera.set(&shader);
 
         globals::clear(1.0, 0.5, 0.7, 1.0, true);
         globals::test_depth(true);
