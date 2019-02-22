@@ -130,13 +130,3 @@ fn model_matrix() -> Vec<glm::Mat4> {
     }
     planes
 }
-
-fn view_matrix() -> glm::Mat4 {
-    let view: glm::Mat4 = glm::identity();
-    let translation = glm::Vec3::new(0.0, 0.0, -3.0);
-    glm::translate(&view, &translation)
-}
-
-fn projection_matrix(width: f32, height: f32) -> glm::Mat4 {
-    glm::perspective(3.1415 / 4.0, width / height, 0.1, 100.0)
-}
