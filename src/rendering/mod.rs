@@ -18,10 +18,13 @@ pub use shader_program::ShaderProgram;
 mod texture;
 pub use texture::Texture;
 
-mod uniform;
-pub use uniform::*;
+mod uniform_vector;
+pub use uniform_vector::UniformVector;
 
 mod vertex_array;
 pub use vertex_array::{ArrayPointer, VertexArray};
+
+mod uniform_matrix;
+pub use uniform_matrix::UniformMatrix;
 
 pub mod enumerations;

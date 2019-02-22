@@ -3,24 +3,24 @@ use gl::types::*;
 use std::any::TypeId;
 use nalgebra_glm::*;
 
-type Assignment<T> = unsafe fn(GLuint, GLint, GLsizei, *const T);
+type Setter<T> = unsafe fn(GLuint, GLint, GLsizei, *const T);
 
 #[derive(Debug)]
 enum Kind {Float, Int, Uint}
 
-const ASSIGNMENT_F: [Assignment<GLfloat>; 4] = [
+const SETTERS_F: [Setter<GLfloat>; 4] = [
     gl::ProgramUniform1fv,
     gl::ProgramUniform2fv,
     gl::ProgramUniform3fv,
     gl::ProgramUniform4fv,
 ];
-const ASSIGNMENT_I: [Assignment<GLint>; 4] = [
+const SETTERS_I: [Setter<GLint>; 4] = [
     gl::ProgramUniform1iv,
     gl::ProgramUniform2iv,
     gl::ProgramUniform3iv,
     gl::ProgramUniform4iv,
 ];
-const ASSIGNMENT_U: [Assignment<GLuint>; 4] = [
+const SETTERS_U: [Setter<GLuint>; 4] = [
     gl::ProgramUniform1uiv,
     gl::ProgramUniform2uiv,
     gl::ProgramUniform3uiv,
@@ -62,9 +62,9 @@ where
 {
     pub fn set(&self) {
         match &self.kind {
-            Kind::Float => self.assign(ASSIGNMENT_F),
-            Kind::Int => self.assign(ASSIGNMENT_I),
-            Kind::Uint => self.assign(ASSIGNMENT_U),
+            Kind::Float => self.assign(SETTERS_F),
+            Kind::Int => self.assign(SETTERS_I),
+            Kind::Uint => self.assign(SETTERS_U),
         };
     }
 
@@ -95,12 +95,12 @@ where
         array.iter().position(|item| *item == id)
     }
 
-    fn assign<U>(&self, array: [Assignment<U>; 4]) {
+    fn assign<U>(&self, array: [Setter<U>; 4]) {
         let count = self.uniforms.len() as i32;
         let uniforms_ptr = self.uniforms.as_ptr() as *const U;
-        let assignment = array[self.components];
+        let setter = array[self.components];
         unsafe {
-            assignment(self.shader.id, self.location, count, uniforms_ptr);
+            setter(self.shader.id, self.location, count, uniforms_ptr);
         }
     }
 }

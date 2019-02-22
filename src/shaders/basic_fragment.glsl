@@ -13,7 +13,4 @@ void main() {
     vec4 first = texture(tex1, v_uv);
     vec4 second = texture(tex2, v_uv);
     fragColor = mix(first, second, modulation);
-    // gl_FragColor = vec4(modulation, modulation, modulation, modulation);
-    // float thing = float(stuff) / 255.0;
-    // fragColor = vec4(thing, thing, thing, thing);
 }
