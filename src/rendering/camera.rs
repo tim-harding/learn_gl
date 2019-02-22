@@ -1,4 +1,4 @@
-use super::ShaderProgram;
+use super::{ShaderProgram, UniformMatrix};
 use nalgebra_glm as glm;
 
 struct Rotation2D {
@@ -39,13 +39,13 @@ impl Camera {
         }
     }
 
-    pub fn set(&self, shader: &ShaderProgram) {
-        let view_proj = [self.view_projection()];
-        let view_proj_ptr = view_proj.as_ptr() as *const f32;
-        let location = shader.location("view_proj");
-        unsafe {
-            gl::ProgramUniformMatrix4fv(shader.id, location, 1, 0, view_proj_ptr);
-        }
+    pub fn update(&self, uniform: &mut UniformMatrix<glm::Mat4>) {
+        uniform.uniforms[0] = self.view_projection();
+        uniform.set_all();
+    }
+
+    pub fn to_uniform<'a>(&'a self, shader: &'a ShaderProgram) -> UniformMatrix<glm::Mat4> {
+        UniformMatrix::new("view_proj", shader, vec![self.view_projection()]).unwrap()
     }
 
     fn view_projection(&self) -> glm::Mat4 {

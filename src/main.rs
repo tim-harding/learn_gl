@@ -86,6 +86,7 @@ fn main() {
         .position(0.0, 1.0, 3.0)
         .viewport(width, height)
         .build();
+    let mut camera_uniform = camera.to_uniform(&shader);
 
     let start_time = SystemTime::now();
     window.poll(|| {
@@ -96,7 +97,7 @@ fn main() {
         crate_tex.activate(TextureUnit::_0);
         face_tex.activate(TextureUnit::_1);
         shader.bind();
-        camera.set(&shader);
+        camera.update(&mut camera_uniform);
 
         globals::clear(1.0, 0.5, 0.7, 1.0, true);
         globals::test_depth(true);
