@@ -19,7 +19,7 @@ mod texture;
 pub use texture::Texture;
 
 mod uniform;
-pub use uniform::{UniformValue, Uniform};
+pub use uniform::*;
 
 mod vertex_array;
 pub use vertex_array::{ArrayPointer, VertexArray};

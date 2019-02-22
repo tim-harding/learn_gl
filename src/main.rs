@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 #![feature(map_entry_replace)]
+#![feature(const_type_id)]
 
 extern crate gl;
 extern crate glutin;
@@ -11,10 +12,10 @@ mod window;
 
 use image::GenericImageView;
 use image::ImageFormat;
+use nalgebra_glm::{IVec1, Vec1};
 use rendering::{enumerations::*, *};
 use std::time::SystemTime;
 use window::Window;
-use nalgebra_glm::{IVec1, Vec1};
 
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
@@ -69,22 +70,28 @@ fn main() {
     let crate_tex = texture_from_bmp(crate_bmp);
     let face_tex = texture_from_bmp(face_bmp);
 
-    let tex1 = Uniform::new("tex1", &shader);
-    IVec1::new(0).set(&tex1);
-    let tex2 = Uniform::new("tex2", &shader);
-    IVec1::new(1).set(&tex2);
+    let tex1 = UniformVector::new("tex1", &shader, vec![IVec1::new(0)]).unwrap();
+    let tex2 = UniformVector::new("tex2", &shader, vec![IVec1::new(1)]).unwrap();
+    tex1.set();
+    tex2.set();
 
     let pairing = Mesh::new(&vao, indices.len() as i32);
-    let time_uniform = Uniform::new("time", &shader);
+    let mut time_uniform = UniformVector::new("time", &shader, vec![Vec1::new(0.0)]).unwrap();
+    time_uniform.set();
 
     let time = SystemTime::now();
     window.poll(|| {
         let elapsed = time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
-        Vec1::new(elapsed).set(&time_uniform);
-        globals::clear(1.0, 0.5, 0.7, 1.0);
+        time_uniform.uniforms[0] = Vec1::new(elapsed);
+
+        time_uniform.set();
+
         crate_tex.activate(TextureUnit::_0);
         face_tex.activate(TextureUnit::_1);
+
         shader.bind();
+
+        globals::clear(1.0, 0.5, 0.7, 1.0);
         pairing.draw();
     });
 }
