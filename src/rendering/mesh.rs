@@ -1,5 +1,6 @@
 use super::VertexArray;
 use std::ptr;
+use wavefront_obj::obj;
 
 pub struct Mesh<'a> {
     vertex_array: &'a VertexArray,

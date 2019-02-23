@@ -6,9 +6,11 @@ extern crate gl;
 extern crate glutin;
 extern crate image;
 extern crate nalgebra_glm;
+extern crate wavefront_obj;
 
 mod rendering;
 mod window;
+mod data;
 
 use image::GenericImageView;
 use image::ImageFormat;
@@ -20,62 +22,11 @@ use window::Window;
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
 
-    #[rustfmt::skip]
-    let vertices: [f32; 16] = [
-        0.5, 0.5, 1.0, 1.0,
-        0.5, -0.5, 1.0, 0.0,
-        -0.5, -0.5, 0.0, 0.0,
-        -0.5, 0.5, 0.0, 1.0,
-    ];
-    #[rustfmt::skip]
-    let indices: [u32; 6] = [
-        0, 1, 3,
-        1, 2, 3
-    ];
-    let vert_source = include_str!("shaders/basic_vertex.glsl");
-    let frag_source = include_str!("shaders/basic_fragment.glsl");
-    let vert = Shader::vert(vert_source)
-        .map_err(|err| println!("{}", err))
-        .expect("Could not compile vertex shader.");
-    let frag = Shader::frag(frag_source)
-        .map_err(|err| println!("{}", err))
-        .expect("Could not compile fragment shader.");
-    let shader = ShaderProgram::new()
-        .with(&vert)
-        .with(&frag)
-        .build()
-        .map_err(|err| println!("{}", err))
-        .expect("Could not link shader program.");
-
-    let vbo = Buffer::new(&vertices).build();
-    let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
-    let positions = ArrayPointer::new()
-        .shader_attribute(&shader, "position")
-        .components(2)
-        .stride::<f32>(4);
-    let colors = ArrayPointer::new()
-        .shader_attribute(&shader, "uv")
-        .components(2)
-        .stride::<f32>(4)
-        .offset::<f32>(2);
-    let vao = VertexArray::new()
-        .buffer(&vbo)
-        .buffer(&ebo)
-        .pointer(&positions)
-        .pointer(&colors)
-        .build();
-
-    let pairing = Mesh::new(&vao, indices.len() as i32);
-
-    let crate_bmp = include_bytes!("textures/crate.bmp");
-    let face_bmp = include_bytes!("textures/face.bmp");
-    let crate_tex = texture_from_bmp(crate_bmp);
-    let face_tex = texture_from_bmp(face_bmp);
-
-    let tex1 = UniformVector::new("tex1", &shader, vec![glm::IVec1::new(0)]).unwrap();
-    let tex2 = UniformVector::new("tex2", &shader, vec![glm::IVec1::new(1)]).unwrap();
-    tex1.set();
-    tex2.set();
+    let shader = create_shader();
+    let vao = create_vao(&shader);
+    let mesh = Mesh::new(&vao, data::INDICES.len() as i32);
+    let crate_tex = create_texture(include_bytes!("textures/crate.bmp"), "tex1", &shader, 0);
+    let face_tex = create_texture(include_bytes!("textures/face.bmp"), "tex2", &shader, 1);
 
     let mut time = UniformVector::new("time", &shader, vec![glm::Vec1::new(0.0)]).unwrap();
     let tx_model = UniformMatrix::new("model", &shader, model_matrix()).unwrap();
@@ -103,7 +54,7 @@ fn main() {
         globals::test_depth(true);
         for i in 0..tx_model.uniforms.len() {
             tx_model.set_range(i, i + 1);
-            pairing.draw();
+            mesh.draw();
         }
     });
 }
@@ -129,4 +80,48 @@ fn model_matrix() -> Vec<glm::Mat4> {
         planes.push(rot);
     }
     planes
+}
+
+fn create_texture(bmp: &[u8], attribute: &str, shader: &ShaderProgram, unit: i32) -> Texture {
+    let tex = texture_from_bmp(bmp);
+    let uniform = UniformVector::new(attribute, &shader, vec![glm::IVec1::new(unit)]).unwrap();
+    uniform.set();
+    tex
+}
+
+fn create_shader() -> ShaderProgram { 
+    let vert_source = include_str!("shaders/basic_vertex.glsl");
+    let frag_source = include_str!("shaders/basic_fragment.glsl");
+    let vert = Shader::vert(vert_source)
+        .map_err(|err| println!("{}", err))
+        .expect("Could not compile vertex shader.");
+    let frag = Shader::frag(frag_source)
+        .map_err(|err| println!("{}", err))
+        .expect("Could not compile fragment shader.");
+    ShaderProgram::new()
+        .with(&vert)
+        .with(&frag)
+        .build()
+        .map_err(|err| println!("{}", err))
+        .expect("Could not link shader program.")
+}
+
+fn create_vao(shader: &ShaderProgram) -> VertexArray {
+    let vbo = Buffer::new(&data::VERTICES).build();
+    let ebo = Buffer::new(&data::INDICES).kind(BufferKind::ElementArray).build();
+    let positions = ArrayPointer::new()
+        .shader_attribute(&shader, "position")
+        .components(2)
+        .stride::<f32>(4);
+    let colors = ArrayPointer::new()
+        .shader_attribute(&shader, "uv")
+        .components(2)
+        .stride::<f32>(4)
+        .offset::<f32>(2);
+    VertexArray::new()
+        .buffer(&vbo)
+        .buffer(&ebo)
+        .pointer(&positions)
+        .pointer(&colors)
+        .build()
 }
