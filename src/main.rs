@@ -6,7 +6,7 @@ extern crate gl;
 extern crate glutin;
 extern crate image;
 extern crate nalgebra_glm;
-extern crate wavefront_obj;
+extern crate gltf;
 
 mod rendering;
 mod window;
@@ -18,15 +18,26 @@ use nalgebra_glm as glm;
 use rendering::{enumerations::*, *};
 use std::time::SystemTime;
 use window::Window;
+use std::env;
+use std::path::Path;
+use std::fs::File;
+use std::io::prelude::*;
 
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
 
-    let shader = create_shader();
+    let path_str = env::args_os().last().unwrap();
+    let path = Path::new(&path_str);
+    let crate_path = path.join("textures/crate.bmp");
+    let face_path = path.join("textures/face.bmp");
+    let vert_path = path.join("shaders/basic_vertex.glsl");
+    let frag_path = path.join("shaders/basic_fragment.glsl");
+
+    let shader = create_shader(vert_path.as_path(), frag_path.as_path());
     let vao = create_vao(&shader);
     let mesh = Mesh::new(&vao, data::INDICES.len() as i32);
-    let crate_tex = create_texture(include_bytes!("textures/crate.bmp"), "tex1", &shader, 0);
-    let face_tex = create_texture(include_bytes!("textures/face.bmp"), "tex2", &shader, 1);
+    let crate_tex = create_texture(crate_path.as_path(), "tex1", &shader, 0);
+    let face_tex = create_texture(face_path.as_path(), "tex2", &shader, 1);
 
     let mut time = UniformVector::new("time", &shader, vec![glm::Vec1::new(0.0)]).unwrap();
     let tx_model = UniformMatrix::new("model", &shader, model_matrix()).unwrap();
@@ -59,14 +70,6 @@ fn main() {
     });
 }
 
-fn texture_from_bmp(data: &[u8]) -> Texture {
-    let bmp = image::load_from_memory_with_format(data, ImageFormat::BMP).unwrap();
-    let width = bmp.width() as usize;
-    let height = bmp.height() as usize;
-    let texture_data = bmp.to_rgb().into_raw();
-    Texture::new(texture_data.as_ref(), width, height).build()
-}
-
 fn model_matrix() -> Vec<glm::Mat4> {
     let mut planes = Vec::with_capacity(3);
     for i in 0..3 {
@@ -82,20 +85,35 @@ fn model_matrix() -> Vec<glm::Mat4> {
     planes
 }
 
-fn create_texture(bmp: &[u8], attribute: &str, shader: &ShaderProgram, unit: i32) -> Texture {
-    let tex = texture_from_bmp(bmp);
+fn create_texture(path: &Path, attribute: &str, shader: &ShaderProgram, unit: i32) -> Texture {
+    let mut buffer: Vec<u8> = Vec::new();
+    let mut file = File::open(path).unwrap();
+    let _ = file.read_to_end(&mut buffer);
+    let tex = texture_from_bmp(buffer.as_ref());
     let uniform = UniformVector::new(attribute, &shader, vec![glm::IVec1::new(unit)]).unwrap();
     uniform.set();
     tex
 }
 
-fn create_shader() -> ShaderProgram { 
-    let vert_source = include_str!("shaders/basic_vertex.glsl");
-    let frag_source = include_str!("shaders/basic_fragment.glsl");
-    let vert = Shader::vert(vert_source)
+fn texture_from_bmp(data: &[u8]) -> Texture {
+    let bmp = image::load_from_memory_with_format(data, ImageFormat::BMP).unwrap();
+    let width = bmp.width() as usize;
+    let height = bmp.height() as usize;
+    let texture_data = bmp.to_rgb().into_raw();
+    Texture::new(texture_data.as_ref(), width, height).build()
+}
+
+fn create_shader(vert_path: &Path, frag_path: &Path) -> ShaderProgram { 
+    let mut buffer = String::new();
+    let mut vert_file = File::open(vert_path).unwrap();
+    let _ = vert_file.read_to_string(&mut buffer);
+    let vert = Shader::vert(buffer.as_ref())
         .map_err(|err| println!("{}", err))
         .expect("Could not compile vertex shader.");
-    let frag = Shader::frag(frag_source)
+    buffer.clear();
+    let mut frag_file = File::open(frag_path).unwrap();
+    let _ = frag_file.read_to_string(&mut buffer);
+    let frag = Shader::frag(buffer.as_ref())
         .map_err(|err| println!("{}", err))
         .expect("Could not compile fragment shader.");
     ShaderProgram::new()
