@@ -49,7 +49,9 @@ impl Camera {
     }
 
     fn view_projection(&self) -> glm::Mat4 {
-        let proj = glm::perspective(3.1415 / 4.0, self.ratio, 0.1, 100.0);
+        let mut proj = glm::perspective(3.1415 / 4.0, self.ratio, 0.1, 1000.0);
+        let scalar = glm::Vec3::new(1.0, self.ratio, 1.0);
+        proj = glm::scale(&proj, &scalar);
         let position = -self.position;
         let mut view: glm::Mat4 = glm::identity();
         view = self.rotation.apply(&view);

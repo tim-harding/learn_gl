@@ -3,63 +3,69 @@
 #![feature(const_type_id)]
 
 extern crate gl;
+extern crate gltf;
 extern crate glutin;
 extern crate image;
 extern crate nalgebra_glm;
-extern crate gltf;
 
+mod data;
 mod rendering;
 mod window;
-mod data;
 
+use gltf::{mesh::util::ReadIndices::*};
 use image::GenericImageView;
 use image::ImageFormat;
 use nalgebra_glm as glm;
 use rendering::{enumerations::*, *};
-use std::time::SystemTime;
-use window::Window;
 use std::env;
-use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::Path;
+use window::Window;
 
 fn main() {
     let mut window = Window::new().title("Hello, world").build();
 
     let shader = create_shader("shaders/basic_vertex.glsl", "shaders/basic_fragment.glsl");
-    let vao = create_vao(&shader);
-    let mesh = Mesh::new(&vao, data::INDICES.len() as i32);
-    let crate_tex = create_texture("textures/crate.bmp", "tex1", &shader, 0);
-    let face_tex = create_texture("textures/face.bmp", "tex2", &shader, 1);
 
-    let mut time = UniformVector::new("time", &shader, vec![glm::Vec1::new(0.0)]).unwrap();
-    let tx_model = UniformMatrix::new("model", &shader, model_matrix()).unwrap();
+    let (contents, buffers, _) =
+        gltf::import(full_path("models/the_utah_teapot/scene.gltf")).unwrap();
+    let meshes = contents.meshes().last().unwrap();
+    let prim = meshes.primitives().last().unwrap();
+    let reader = prim.reader(|buffer| Some(&buffers[buffer.index()]));
+    let positions: Vec<_> = reader.read_positions().unwrap().collect();
+    let indices: Vec<_> = match reader.read_indices().unwrap() {
+        U32(iter) => iter.collect(),
+        _ => {
+            println!("Wrong indices type");
+            return;
+        }
+    };
+    let vbo = Buffer::new(&positions).build();
+    let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
+    let pos_ptr = ArrayPointer::new()
+        .shader_attribute(&shader, "position")
+        .components(3);
+    let vao = VertexArray::new()
+        .buffer(&vbo)
+        .buffer(&ebo)
+        .pointer(&pos_ptr)
+        .build();
+    let mesh = Mesh::new(&vao, indices.len() as i32);
 
     let (width, height) = window.size();
     let camera = Camera::new()
-        .rotation(0.0, -3.1415 / 5.0)
-        .position(0.0, 1.0, 3.0)
         .viewport(width, height)
         .build();
     let mut camera_uniform = camera.to_uniform(&shader);
 
-    let start_time = SystemTime::now();
     window.poll(|| {
-        let elapsed = start_time.elapsed().unwrap().as_millis() as f32 / 1000.0f32;
-        time.uniforms[0] = glm::Vec1::new(elapsed);
-        time.set();
-
-        crate_tex.activate(TextureUnit::_0);
-        face_tex.activate(TextureUnit::_1);
         shader.bind();
         camera.update(&mut camera_uniform);
 
         globals::clear(1.0, 0.5, 0.7, 1.0, true);
         globals::test_depth(true);
-        for i in 0..tx_model.uniforms.len() {
-            tx_model.set_range(i, i + 1);
-            mesh.draw();
-        }
+        mesh.draw();
     });
 }
 
@@ -96,7 +102,7 @@ fn texture_from_bmp(data: &[u8]) -> Texture {
     Texture::new(texture_data.as_ref(), width, height).build()
 }
 
-fn create_shader(vert_path: &str, frag_path: &str) -> ShaderProgram { 
+fn create_shader(vert_path: &str, frag_path: &str) -> ShaderProgram {
     let mut buffer = String::new();
     let mut vert_file = File::open(full_path(vert_path)).unwrap();
     let _ = vert_file.read_to_string(&mut buffer);
@@ -119,7 +125,9 @@ fn create_shader(vert_path: &str, frag_path: &str) -> ShaderProgram {
 
 fn create_vao(shader: &ShaderProgram) -> VertexArray {
     let vbo = Buffer::new(&data::VERTICES).build();
-    let ebo = Buffer::new(&data::INDICES).kind(BufferKind::ElementArray).build();
+    let ebo = Buffer::new(&data::INDICES)
+        .kind(BufferKind::ElementArray)
+        .build();
     let positions = ArrayPointer::new()
         .shader_attribute(&shader, "position")
         .components(2)
