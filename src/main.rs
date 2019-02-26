@@ -34,6 +34,7 @@ fn main() {
     let prim = meshes.primitives().last().unwrap();
     let reader = prim.reader(|buffer| Some(&buffers[buffer.index()]));
     let positions: Vec<_> = reader.read_positions().unwrap().collect();
+    let normals: Vec<_> = reader.read_normals().unwrap().collect();
     let indices: Vec<_> = match reader.read_indices().unwrap() {
         U32(iter) => iter.collect(),
         _ => {
@@ -41,15 +42,18 @@ fn main() {
             return;
         }
     };
-    let vbo = Buffer::new(&positions).build();
-    let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
-    let pos_ptr = ArrayPointer::new()
+    let pos_vbo = Buffer::new(&positions).build();
+    let normal_vbo = Buffer::new(&normals).build();
+    let pos_ptr = [ArrayPointer::new()
         .shader_attribute(&shader, "position")
-        .components(3);
+        .components(3)];
+    let normal_ptr = [ArrayPointer::new().shader_attribute(&shader, "normal").components(3)];
+    let ebo = Buffer::new(&indices).kind(BufferKind::ElementArray).build();
+    let none_ptr = [];
     let vao = VertexArray::new()
-        .buffer(&vbo)
-        .buffer(&ebo)
-        .pointer(&pos_ptr)
+        .buffer(&pos_vbo, &pos_ptr)
+        .buffer(&normal_vbo, &normal_ptr)
+        .buffer(&ebo, &none_ptr)
         .build();
     let mesh = Mesh::new(&vao, indices.len() as i32);
 
@@ -121,28 +125,6 @@ fn create_shader(vert_path: &str, frag_path: &str) -> ShaderProgram {
         .build()
         .map_err(|err| println!("{}", err))
         .expect("Could not link shader program.")
-}
-
-fn create_vao(shader: &ShaderProgram) -> VertexArray {
-    let vbo = Buffer::new(&data::VERTICES).build();
-    let ebo = Buffer::new(&data::INDICES)
-        .kind(BufferKind::ElementArray)
-        .build();
-    let positions = ArrayPointer::new()
-        .shader_attribute(&shader, "position")
-        .components(2)
-        .stride::<f32>(4);
-    let colors = ArrayPointer::new()
-        .shader_attribute(&shader, "uv")
-        .components(2)
-        .stride::<f32>(4)
-        .offset::<f32>(2);
-    VertexArray::new()
-        .buffer(&vbo)
-        .buffer(&ebo)
-        .pointer(&positions)
-        .pointer(&colors)
-        .build()
 }
 
 fn full_path(sub_path: &str) -> Box<Path> {

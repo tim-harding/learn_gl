@@ -11,7 +11,6 @@ impl VertexArray {
     pub fn new<'a>() -> VertexArrayBuilder<'a> {
         VertexArrayBuilder {
             buffers: vec![],
-            pointers: vec![],
         }
     }
 
@@ -29,18 +28,12 @@ impl VertexArray {
 }
 
 pub struct VertexArrayBuilder<'a> {
-    buffers: Vec<&'a Buffer>,
-    pointers: Vec<&'a ArrayPointer>,
+    buffers: Vec<(&'a Buffer, &'a [ArrayPointer])>,
 }
 
 impl<'a> VertexArrayBuilder<'a> {
-    pub fn buffer(mut self, buffer: &'a Buffer) -> Self {
-        self.buffers.push(buffer);
-        self
-    }
-
-    pub fn pointer(mut self, pointer: &'a ArrayPointer) -> Self {
-        self.pointers.push(pointer);
+    pub fn buffer(mut self, buffer: &'a Buffer, pointers: &'a [ArrayPointer]) -> Self {
+        self.buffers.push((buffer, pointers));
         self
     }
 
@@ -51,11 +44,11 @@ impl<'a> VertexArrayBuilder<'a> {
             gl::BindVertexArray(id);
             id
         };
-        for buffer in self.buffers {
-            buffer.bind();
-        }
-        for pointer in self.pointers {
-            pointer.bind();
+        for buffer in self.buffers.iter() {
+            buffer.0.bind();
+            for pointer in buffer.1.iter() {
+                pointer.bind();
+            }
         }
         VertexArray::unbind();
         VertexArray { id }
